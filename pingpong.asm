@@ -63,6 +63,7 @@ MAIN PROC
           CALL DRAWBALL
           CALL MOVE_PADDLES
           CALL DRAW_PADDLES
+          CALL DRAW_UI
 
      JMP CHECK_TIME
 
@@ -235,13 +236,13 @@ MOVE_BALL PROC
      ADD BALL_X, AX           ; adding the velocity to the current x axis coordinate
 
      CMP BALL_X, 05h          ; x < 05
-     JL RESET_BALL
+     JL GIVE_POINT_TO_PLAYER_TWO ; if ball goes on left side give point to player two and reset the ball
 
      MOV AX, WINDOW_WIDTH     ; x > window width
      SUB AX, BALL_SIZE
      SUB AX, 05h
      CMP BALL_X, AX
-     JG RESET_BALL
+     JG GIVE_POINT_TO_PLAYER_ONE ; if ball goes on left side give point to player two and reset the ball
 
 
      ; Moving ball on y axis and checking if it is colliding or not
@@ -260,10 +261,29 @@ MOVE_BALL PROC
      
      RET 
 
-     RESET_BALL:
+     GIVE_POINT_TO_PLAYER_ONE:
+          INC PADDLE_LEFT_POINTS
           CALL RESET_BALL_POSITION
-     RET
-     
+
+          CMP PADDLE_LEFT_POINTS, 05h
+          JGE GAME_OVER
+
+          RET
+
+     GIVE_POINT_TO_PLAYER_TWO:
+          INC PADDLE_RIGHT_POINTS
+          CALL RESET_BALL_POSITION
+
+          CMP PADDLE_RIGHT_POINTS, 05h
+          JGE GAME_OVER
+
+          RET
+
+     GAME_OVER:
+          MOV PADDLE_LEFT_POINTS, 00h
+          MOV PADDLE_RIGHT_POINTS, 00h
+          RET
+
      NEG_VELOCITY_Y:
           NEG BALL_VELOCITY_Y
      RET 
@@ -347,6 +367,9 @@ RESET_BALL_POSITION PROC
      MOV AX, BALL_ORIGINAL_Y
      MOV BALL_Y, AX
 
+     NEG BALL_VELOCITY_X
+     NEG BALL_VELOCITY_Y
+
      RET
 RESET_BALL_POSITION ENDP
 
@@ -394,5 +417,37 @@ CLEAR_SCREEN PROC
      RET
 
 CLEAR_SCREEN ENDP
+
+DRAW_UI PROC
+
+     ; Drawing the points of left player (player one)
+
+     MOV AH, 02h         ; setting cursor position
+     MOV BH, 00h         ; page no
+     MOV DH, 03h         ; row
+     MOV DL, 06h         ; column
+     INT 10h 
+
+     MOV AH, 02h
+     MOV DX, PADDLE_LEFT_POINTS
+     ADD DX, 48
+     INT 21h  
+
+     ; Drawing the points of right player (player two)
+
+     MOV AH, 02h         ; setting cursor position
+     MOV BH, 00h         ; page no
+     MOV DH, 03h         ; row
+     MOV DL, 20h         ; column
+     INT 10h 
+
+     MOV AH, 02h
+     MOV DX, PADDLE_RIGHT_POINTS
+     ADD DX, 48
+     INT 21h  
+
+
+     RET
+DRAW_UI ENDP
 
 END MAIN
