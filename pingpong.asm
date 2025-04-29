@@ -35,6 +35,15 @@ ORG 100H
 
      PADDLE_VELOCITY DW 05h    ; paddle velocity (05)
 
+     GAME_ACTIVE DB 1          ; 1(game is active) / 0 (game ended)
+     TEXT_GAME_OVER DB "GAME OVER $"
+     TEXT_PLAYER DB "PLAYER $"
+     PLAYER_ONE_WINNER DB 00h
+     PLAYER_TWO_WINNER DB 00h
+     TEXT_PLAYER_ONE DB "ONE WON THE GAME $"
+     TEXT_PLAYER_TWO DB "TWO WON THE GAME $"
+
+
 .CODE
 
      ; CODE SEGMENT
@@ -47,7 +56,10 @@ MAIN PROC
      CALL CLEAR_SCREEN
 
      CHECK_TIME:
-          
+
+          CMP GAME_ACTIVE, 00h
+          JE SHOW_GAME_OVER_MENU
+
           MOV AH, 2Ch    ;get system time
           INT 21h        ;CH = hour, CL = minute, DH = second, DL = 1/100 seconds
 
@@ -67,8 +79,70 @@ MAIN PROC
 
      JMP CHECK_TIME
 
+     SHOW_GAME_OVER_MENU:
+          CALL DRAW_GAME_OVER_MENU
+          JMP CHECK_TIME
+
      RET
 MAIN ENDP
+
+DRAW_GAME_OVER_MENU PROC
+
+     CALL CLEAR_SCREEN
+
+     MOV AH, 02h
+     MOV BH, 00h
+     MOV DH, 04h
+     MOV DL, 0Dh
+     INT 10h
+
+     MOV AH, 09h
+     LEA DX, TEXT_GAME_OVER
+     INT 21h
+
+     MOV AH, 02h
+     MOV BH, 00h
+     MOV DH, 08h
+     MOV DL, 0Dh
+     INT 10h
+
+     MOV AH, 09h
+     LEA DX, TEXT_PLAYER
+     INT 21h
+
+     CMP PLAYER_ONE_WINNER, 01h
+     JE PLAYER_ONE_WON
+
+     CMP PLAYER_TWO_WINNER, 01h
+     JE PLAYER_TWO_WON
+
+     MOV PLAYER_ONE_WINNER, 00h
+     MOV PLAYER_TWO_WINNER, 00h
+
+     
+
+     PLAYER_ONE_WON:
+          MOV AH, 09h
+          LEA DX, TEXT_PLAYER_ONE
+          INT 21h
+
+          MOV AH, 00h
+          INT 16h
+
+          RET
+     
+     PLAYER_TWO_WON:
+          MOV AH, 09h
+          LEA DX, TEXT_PLAYER_TWO
+          INT 21h
+
+          MOV AH, 00h
+          INT 16h
+
+          RET
+
+     RET     
+DRAW_GAME_OVER_MENU ENDP
 
 DRAW_PADDLES PROC
 
@@ -266,6 +340,7 @@ MOVE_BALL PROC
           CALL RESET_BALL_POSITION
 
           CMP PADDLE_LEFT_POINTS, 05h
+          MOV PLAYER_ONE_WINNER, 01h
           JGE GAME_OVER
 
           RET
@@ -275,6 +350,7 @@ MOVE_BALL PROC
           CALL RESET_BALL_POSITION
 
           CMP PADDLE_RIGHT_POINTS, 05h
+          MOV PLAYER_TWO_WINNER, 01h
           JGE GAME_OVER
 
           RET
@@ -282,6 +358,7 @@ MOVE_BALL PROC
      GAME_OVER:
           MOV PADDLE_LEFT_POINTS, 00h
           MOV PADDLE_RIGHT_POINTS, 00h
+          MOV GAME_ACTIVE, 00h
           RET
 
      NEG_VELOCITY_Y:
