@@ -23,11 +23,11 @@ ORG 100H
      BALL_ORIGINAL_Y DW 64h    ; ball start position y
 
      PADDLE_LEFT_X DW 0Ah      ; left paddle start position x axis
-     PADDLE_LEFT_Y DW 0Ah      ; left paddle start position y axis
+     PADDLE_LEFT_Y DW 60h      ; left paddle start position y axis
      PADDLE_LEFT_POINTS DW 0
 
-     PADDLE_RIGHT_X DW 130h    ; right paddle start position x axis
-     PADDLE_RIGHT_Y DW 0Ah     ; right paddle start position y axis
+     PADDLE_RIGHT_X DW 136h    ; right paddle start position x axis
+     PADDLE_RIGHT_Y DW 60h     ; right paddle start position y axis
      PADDLE_RIGHT_POINTS DW 0
 
      PADDLE_WIDTH DW 05h       ; paddle width (05)
