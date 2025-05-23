@@ -43,6 +43,8 @@ ORG 100H
      TEXT_PLAYER_ONE DB "ONE WON THE GAME $"
      TEXT_PLAYER_TWO DB "TWO WON THE GAME $"
 
+     TEXT_TITLE_PING DB 'PING $'
+     TEXT_TITLE_PONG DB 'PONG $'
 
 .CODE
 
@@ -52,7 +54,11 @@ MAIN PROC
 
      MOV AX, @DATA
      MOV DS, AX
-     
+
+     CALL CLEAR_SCREEN
+
+     CALL PROJECT_INTRO
+
      CALL CLEAR_SCREEN
 
      CHECK_TIME:
@@ -85,6 +91,64 @@ MAIN PROC
 
      RET
 MAIN ENDP
+
+PROJECT_INTRO PROC
+
+     MOV AX, @DATA
+     MOV DS, AX
+
+     MOV AH, 00h
+     MOV AL, 03h
+     INT 10h
+
+    ; Set cursor to center (row 12, column 36)
+    MOV AH, 02h
+    MOV BH, 00h
+    MOV DH, 12
+    MOV DL, 34
+    INT 10h
+
+    ; Print "PING PONG" using INT 21h
+    MOV AH, 09h
+    LEA DX, TEXT_TITLE_PING
+    INT 21h
+ 
+    MOV AH, 02h
+    MOV BH, 00h
+    MOV DH, 12
+    MOV DL, 39
+    INT 10h
+
+    MOV AH, 09h
+    LEA DX, TEXT_TITLE_PONG
+    INT 21h
+
+    ; Get start time in hundredths of a second
+    MOV AH, 2Ch
+    INT 21h
+    MOV BL, DH     ; Save seconds
+    MOV BH, CL     ; Save hundredths of a second
+
+WAIT_LOOP:
+    MOV AH, 2Ch
+    INT 21h
+    ; Compute elapsed time = (curr_sec - start_sec) * 100 + (curr_hundredths - start_hundredths)
+    MOV AL, DH     ; current seconds
+    SUB AL, BL     ; subtract start seconds
+    MOV AH, 0
+    CBW            ; sign extend to AX
+    MOV CX, 100
+    MUL CX         ; AX = diff_sec * 100
+
+    MOV CL, CL     ; current hundredths
+    SUB CL, BH     ; subtract start hundredths
+    ADD AX, CX     ; total elapsed time in hundredths
+
+    CMP AX, 300    ; check if 300 hundredths = 3 seconds passed
+    JB WAIT_LOOP   ; if not, continue looping
+    RET
+PROJECT_INTRO ENDP
+
 
 DRAW_GAME_OVER_MENU PROC
 
