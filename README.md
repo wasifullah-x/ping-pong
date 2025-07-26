@@ -28,7 +28,11 @@ This is a simple **Ping Pong game** built using **16-bit x86 Assembly language**
 
 ## 🖼️ Screenshots
 
+### Game Start Screen
+![Game Start](screenshots/gameplay1.png)
 
+### In-Game Action
+![In-Game](screenshots/gameplay2.png)
 
 ---
 
